@@ -2,7 +2,7 @@
 pipeline {
   agent any
   tools{
-        maven 'Default'
+        maven 'maven:3-alpine'
       }
   stages {
     stage('Jenkinffile Test') {
