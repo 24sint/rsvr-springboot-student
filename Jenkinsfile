@@ -10,9 +10,8 @@ pipeline {
     }
     stage('Clone and run angular repo') {
       steps {
-        sh "rm -rf rsvr-angular"
-        sh "git clone https://github.com/g-testo/rsvr-angular; cd rsvr-angular; npm install; ng serve &"
-        sh "pwd"
+        sh "[[ ! -d ./rsvr-angular ]] git clone https://github.com/g-testo/rsvr-angular;[[ ! -d ./node.modules ]] && npm install; ng serve &"
+  
       }
     }
     stage('SpringBoot Selenium/Cucumber Test') {
@@ -21,6 +20,25 @@ pipeline {
         sleep(time:10,unit:"SECONDS")
         sh "mvn '-Dtest=*/RunCucumberTest.java' test"
       }
+      
+       stage('Build Docker File') {
+      steps {
+        sh "mvn package; docker build -t rsvrspringboottest ."
+      }
     }
+    stage('Deploy to Heroku') {
+      steps {
+          sh "heroku git:remote -a rsvrspringboot"
+          sh "git checkout master"
+          sh "git push heroku master"
+      }
+    }
+  }
+  post {
+    always {
+      sh "kill \$(lsof -t -i:4200)"
+    }
+    }
+    
   }
 }
